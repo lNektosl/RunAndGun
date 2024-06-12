@@ -28,7 +28,6 @@ public class BulletTrail : MonoBehaviour{
 
     public void SetTarget(Vector3 target) { 
     this.target=target;
-        Debug.Log(this.target);
     }
 }
 
