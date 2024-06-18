@@ -11,6 +11,9 @@ public class Player : MonoBehaviour, IDamagable {
     private bool isShooting = false;
     private bool isDashing = false;
     private bool isMoving = false;
+    private bool readyToShoot = true;
+    private bool isDamagable = true;
+
     private Rigidbody2D rigidbody2D;
 
     private float speed = 7f;
@@ -20,9 +23,6 @@ public class Player : MonoBehaviour, IDamagable {
     private float dashDuration = 0.3f;
     private int gunDamage = 2;
     private float rateOfFire = 0.5f;
-    private bool readyToShoot;
-    private bool isDamagable = true;
-
 
     private Vector2 smoothedMovement;
     private Vector2 smoothedVelocity;
@@ -51,7 +51,9 @@ public class Player : MonoBehaviour, IDamagable {
 
     private void HandleMovement() {
         Vector2 moveDir = input.GetVector2Normalized();
-        lastInput = moveDir;
+        if (moveDir != Vector2.zero) {
+            lastInput = moveDir;
+        }
         smoothedMovement = Vector2.SmoothDamp(smoothedMovement, moveDir, ref smoothedVelocity, 0.2f);
         rigidbody2D.velocity = smoothedMovement * speed;
         isMoving = moveDir != Vector2.zero;

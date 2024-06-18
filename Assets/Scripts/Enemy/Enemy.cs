@@ -25,6 +25,9 @@ public class Enemy : MonoBehaviour, IDamagable {
     private void Awake() {
         rigidbody = GetComponent<Rigidbody2D>();
         player = FindObjectOfType<Player>().transform;
+        collider = GetComponent<Collider2D>();
+
+        rigidbody.freezeRotation = true;
     }
 
     private void FixedUpdate() {
@@ -53,21 +56,19 @@ public class Enemy : MonoBehaviour, IDamagable {
         isAwareOfThePlayer = true;
         }
         else {
+            StopMovment();
             isAwareOfThePlayer = false;
-            DropTargetPosition();
         }
     }
 
-    private void DropTargetPosition() {
-        targetDir = Vector2.zero;
-        StopMovment();
-    }
 
     private void HandleMovment() {
+        isMoving = true;
         rigidbody.velocity = targetDir * moveSpeed;
     }
 
     private void StopMovment() {
+        isMoving = false;
         rigidbody.velocity = Vector2.zero;
     }
 
@@ -78,8 +79,13 @@ public class Enemy : MonoBehaviour, IDamagable {
         }
     }
 
+    public bool IsMoving() {
+        return isMoving;
+    }
+
     private void Die() {
-        DropTargetPosition();
+        StopMovment();
+        isMoving = false;
         isDead = true;
         collider.enabled = false;   
         Destroy(gameObject, 3f);

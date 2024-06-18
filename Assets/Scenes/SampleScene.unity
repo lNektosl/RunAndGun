@@ -842,25 +842,13 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
-    - target: {fileID: 2003618373709189919, guid: a5fcf5a4946039b41a96a145c30b8d8a, type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 0.7071078
+    - target: {fileID: 1906690338168707777, guid: a5fcf5a4946039b41a96a145c30b8d8a, type: 3}
+      propertyPath: m_Simulated
+      value: 1
       objectReference: {fileID: 0}
-    - target: {fileID: 2003618373709189919, guid: a5fcf5a4946039b41a96a145c30b8d8a, type: 3}
-      propertyPath: m_LocalRotation.x
-      value: -0
-      objectReference: {fileID: 0}
-    - target: {fileID: 2003618373709189919, guid: a5fcf5a4946039b41a96a145c30b8d8a, type: 3}
-      propertyPath: m_LocalRotation.y
-      value: -0
-      objectReference: {fileID: 0}
-    - target: {fileID: 2003618373709189919, guid: a5fcf5a4946039b41a96a145c30b8d8a, type: 3}
-      propertyPath: m_LocalRotation.z
-      value: -0.7071058
-      objectReference: {fileID: 0}
-    - target: {fileID: 2003618373709189919, guid: a5fcf5a4946039b41a96a145c30b8d8a, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: -90
+    - target: {fileID: 1906690338168707777, guid: a5fcf5a4946039b41a96a145c30b8d8a, type: 3}
+      propertyPath: m_AngularDrag
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3241713226610477827, guid: a5fcf5a4946039b41a96a145c30b8d8a, type: 3}
       propertyPath: m_LocalPosition.x
@@ -905,6 +893,10 @@ PrefabInstance:
     - target: {fileID: 4446759721979964127, guid: a5fcf5a4946039b41a96a145c30b8d8a, type: 3}
       propertyPath: m_Name
       value: Enemy
+      objectReference: {fileID: 0}
+    - target: {fileID: 7208031884409182430, guid: a5fcf5a4946039b41a96a145c30b8d8a, type: 3}
+      propertyPath: m_Density
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
