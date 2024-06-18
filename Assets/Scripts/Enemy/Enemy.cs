@@ -13,6 +13,7 @@ public class Enemy : MonoBehaviour, IDamagable {
     private Rigidbody2D rigidbody;
     private bool isMoving = false;
     private float moveSpeed = 3f;
+    private float rotationSpeed = 360f;
 
     private bool isAwareOfThePlayer = false;
     private float awarensesRange = 5f;
@@ -26,25 +27,23 @@ public class Enemy : MonoBehaviour, IDamagable {
         rigidbody = GetComponent<Rigidbody2D>();
         player = FindObjectOfType<Player>().transform;
         collider = GetComponent<Collider2D>();
-
-        rigidbody.freezeRotation = true;
     }
 
     private void FixedUpdate() {
         if (!isDead) {
             UpdateTargetDir();
             IsAware();
-            if (isAwareOfThePlayer) {
-                HandleRotation();
-                HandleMovment();
-            }
+            HandleRotation();
+            HandleMovment();
         }
     }
 
     private void HandleRotation() {
-        targetDir = toTargetVector.normalized;
-        float angle = Mathf.Atan2(targetDir.y, targetDir.x) * Mathf.Rad2Deg;
-        transform.eulerAngles = new Vector3(0, 0, angle);
+                if(targetDir!= Vector2.zero) {
+            Quaternion targetRotation = Quaternion.LookRotation(transform.forward, targetDir);
+            Quaternion rotate = Quaternion.RotateTowards(transform.rotation, targetRotation, rotationSpeed * Time.deltaTime);
+            rigidbody.SetRotation(rotate);
+        }
     }
 
     private void UpdateTargetDir() {
@@ -52,24 +51,25 @@ public class Enemy : MonoBehaviour, IDamagable {
     }
 
     private void IsAware() {
-        if (toTargetVector.magnitude <= awarensesRange) { 
-        isAwareOfThePlayer = true;
+        if (toTargetVector.magnitude <= awarensesRange) {
+            isAwareOfThePlayer = true;
         }
         else {
-            StopMovment();
             isAwareOfThePlayer = false;
         }
     }
 
 
     private void HandleMovment() {
-        isMoving = true;
-        rigidbody.velocity = targetDir * moveSpeed;
-    }
-
-    private void StopMovment() {
-        isMoving = false;
-        rigidbody.velocity = Vector2.zero;
+       
+        if (isAwareOfThePlayer) {
+            targetDir = toTargetVector.normalized;
+            rigidbody.velocity = targetDir * moveSpeed;
+        }
+        else {
+            rigidbody.velocity = Vector2.zero;
+        }
+        isMoving = rigidbody.velocity != Vector2.zero;
     }
 
     public void TakeDamage(int damage) {
@@ -84,15 +84,15 @@ public class Enemy : MonoBehaviour, IDamagable {
     }
 
     private void Die() {
-        StopMovment();
+        rigidbody.velocity = Vector2.zero;
         isMoving = false;
         isDead = true;
-        collider.enabled = false;   
+        collider.enabled = false;
         Destroy(gameObject, 3f);
     }
     public void OnCollisionStay2D(Collision2D collision) {
         IDamagable damagable = collision.gameObject.GetComponent<IDamagable>();
-        if (damagable!=null){
+        if (damagable != null) {
             damagable.TakeDamage(damege);
         }
     }
