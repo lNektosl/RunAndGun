@@ -2,7 +2,7 @@ using System;
 using System.Collections;
 using UnityEngine;
 
-public class Player : MonoBehaviour {
+public class Player : MonoBehaviour, IDamagable {
     [SerializeField] private MousePosition2D mousePosition;
     [SerializeField] private PlayerInput input;
     [SerializeField] private Transform endOfAGun;
@@ -14,11 +14,15 @@ public class Player : MonoBehaviour {
     private Rigidbody2D rigidbody2D;
 
     private float speed = 7f;
+    private int hp = 10;
+    private float invulnerabilityDuration = 2f;
     private float dashSpeed = 17f;
     private float dashDuration = 0.3f;
     private int gunDamage = 2;
     private float rateOfFire = 0.5f;
-    private bool readyToShoot = true;
+    private bool readyToShoot;
+    private bool isDamagable = true;
+
 
     private Vector2 smoothedMovement;
     private Vector2 smoothedVelocity;
@@ -116,5 +120,24 @@ public class Player : MonoBehaviour {
 
     public bool IsMoving() {
         return isMoving;
+    }
+
+    public void TakeDamage(int damage) {
+        if (isDamagable) {
+            isDamagable = false;
+            Debug.Log("Ouch");
+            hp -= damage;
+            if (hp <= 0) {
+                Die();
+            }
+            StartCoroutine("ResetISDamageble");
+        }
+    }
+    public IEnumerator ResetISDamageble() {
+        yield return new WaitForSeconds(invulnerabilityDuration);
+        isDamagable = true;
+    }
+    private void Die() {
+        Debug.Log("Oh no");
     }
 }
