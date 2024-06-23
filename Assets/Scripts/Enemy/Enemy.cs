@@ -21,12 +21,18 @@ public class Enemy : MonoBehaviour, IDamagable {
     private Vector2 toTargetVector;
     private Vector2 targetDir;
     private int damege = 2;
+    float dirCouldown;
 
     private bool isDead = false;
     private void Awake() {
         rigidbody = GetComponent<Rigidbody2D>();
         player = FindObjectOfType<Player>().transform;
         collider = GetComponent<Collider2D>();
+    }
+    private void Start() {
+        rigidbody.freezeRotation = true;
+        targetDir = transform.up;
+        dirCouldown = Random.Range(1f, 5f);
     }
 
     private void FixedUpdate() {
@@ -61,15 +67,31 @@ public class Enemy : MonoBehaviour, IDamagable {
 
 
     private void HandleMovment() {
-       
+        HandleRandomDirection();
+        HandlePlayerTargeting();
+        isMoving = rigidbody.velocity != Vector2.zero;
+    }
+
+    private void HandleRandomDirection() {
+        
+        dirCouldown -= Time.deltaTime;
+
+        if (dirCouldown <= 0) {
+            float angleChange = Random.Range(-90f, 90f);
+            Quaternion rotation = Quaternion.AngleAxis(angleChange,transform.forward);
+            targetDir = rotation * targetDir;
+            dirCouldown = Random.Range(1f, 5f);
+        }
+
+        rigidbody.velocity = targetDir * moveSpeed;
+
+    }
+
+    private void HandlePlayerTargeting() {
         if (isAwareOfThePlayer) {
             targetDir = toTargetVector.normalized;
             rigidbody.velocity = targetDir * moveSpeed;
         }
-        else {
-            rigidbody.velocity = Vector2.zero;
-        }
-        isMoving = rigidbody.velocity != Vector2.zero;
     }
 
     public void TakeDamage(int damage) {
@@ -81,6 +103,10 @@ public class Enemy : MonoBehaviour, IDamagable {
 
     public bool IsMoving() {
         return isMoving;
+    }
+
+    public bool IsDead() {
+        return isDead;
     }
 
     private void Die() {

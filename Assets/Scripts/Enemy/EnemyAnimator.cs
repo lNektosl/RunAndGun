@@ -11,5 +11,6 @@ public class EnemyAnimator : MonoBehaviour {
     }
     private void Update() {
         animator.SetBool("isMoving",enemy.IsMoving());
+        animator.SetBool("isDead", enemy.IsDead());
     }
 }

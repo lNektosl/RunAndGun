@@ -13,8 +13,10 @@ public class Player : MonoBehaviour, IDamagable {
     private bool isMoving = false;
     private bool readyToShoot = true;
     private bool isDamagable = true;
+    private bool isDead = false;
 
     private Rigidbody2D rigidbody2D;
+    private Collider2D collider;
 
     private float speed = 7f;
     private int hp = 10;
@@ -31,21 +33,25 @@ public class Player : MonoBehaviour, IDamagable {
 
     public void Awake() {
         rigidbody2D = GetComponent<Rigidbody2D>();
+        collider = GetComponent<Collider2D>();
     }
 
     public void Start() {
         input.OnShiftPressed += Dash_OnShiftPressed;
         input.OnShootStart += Shoot_OnShootStart;
         input.OnShootEnd += EndShoot_OnShootEnd;
+        rigidbody2D.freezeRotation = true;
     }
 
     public void FixedUpdate() {
-        HandleRotation();
-        if (!isDashing) {
-            HandleMovement();
-        }
-        if (isShooting) {
-            HandleShooting();
+        if (!isDead) {
+            HandleRotation();
+            if (!isDashing) {
+                HandleMovement();
+            }
+            if (isShooting) {
+                HandleShooting();
+            }
         }
     }
 
@@ -124,6 +130,10 @@ public class Player : MonoBehaviour, IDamagable {
         return isMoving;
     }
 
+    public bool IsDead() {
+        return isDead;
+    }
+
     public void TakeDamage(int damage) {
         if (isDamagable) {
             isDamagable = false;
@@ -140,6 +150,8 @@ public class Player : MonoBehaviour, IDamagable {
         isDamagable = true;
     }
     private void Die() {
-        Debug.Log("Oh no");
+        isDead = true;
+        collider.enabled = false;
+        rigidbody2D.velocity = Vector2.zero;
     }
 }

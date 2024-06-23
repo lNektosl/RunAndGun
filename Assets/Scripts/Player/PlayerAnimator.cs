@@ -12,5 +12,6 @@ public class PlayerAnimator : MonoBehaviour{
 
     private void Update() {
         animator.SetBool("isMoving", player.IsMoving());
+        animator.SetBool("isDead", player.IsDead());
     }
 }
