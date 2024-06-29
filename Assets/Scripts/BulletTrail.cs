@@ -2,11 +2,18 @@ using UnityEngine;
 
 public class BulletTrail : MonoBehaviour{
 
+    private TrailRenderer trail;
     private float progress;
     private Vector3 endOfAGun;
     private Vector3 target;
     private float speed;
 
+
+    public void Start(){
+        trail = GetComponent<TrailRenderer>();
+        trail.sortingLayerName = "Bullet";
+        trail.sortingOrder = 3;
+    }
 
     public void Fly() {
         progress += speed * Time.deltaTime;
