@@ -42,7 +42,7 @@ public class Enemy : MonoBehaviour, IDamagable {
     }
 
     private void FixedUpdate () {
-        if (!isDead || isActive) {
+        if (!isDead && isActive) {
             UpdateTargetDir();
             IsAware();
             HandleRotation();
@@ -131,7 +131,7 @@ public class Enemy : MonoBehaviour, IDamagable {
     }
     public void OnCollisionStay2D (Collision2D collision) {
         IDamagable damagable = collision.gameObject.GetComponent<IDamagable>();
-        if (damagable != null) {
+        if (damagable != null && collision.gameObject.name == "Player") {
             damagable.TakeDamage(damege);
         }
     }
