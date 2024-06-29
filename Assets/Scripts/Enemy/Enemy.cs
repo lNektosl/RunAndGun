@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -77,15 +78,20 @@ public class Enemy : MonoBehaviour, IDamagable {
         dirCouldown -= Time.deltaTime;
 
         if (dirCouldown <= 0) {
-            float angleChange = Random.Range(-90f, 90f);
-            Quaternion rotation = Quaternion.AngleAxis(angleChange,transform.forward);
-            targetDir = rotation * targetDir;
+            GetRandomDir();
             dirCouldown = Random.Range(1f, 5f);
         }
 
         rigidbody.velocity = targetDir * moveSpeed;
 
     }
+
+    private void GetRandomDir(){
+        float angleChange = Random.Range(-90f, 90f);
+        Quaternion rotation = Quaternion.AngleAxis(angleChange, transform.forward);
+        targetDir = rotation * targetDir;
+    }
+
 
     private void HandlePlayerTargeting() {
         if (isAwareOfThePlayer) {
@@ -120,6 +126,16 @@ public class Enemy : MonoBehaviour, IDamagable {
         IDamagable damagable = collision.gameObject.GetComponent<IDamagable>();
         if (damagable != null) {
             damagable.TakeDamage(damege);
+        }
+    }
+
+    public void OnCollisionEnter2D(Collision2D collision){
+        GameObject gameObject = collision.gameObject;
+        int layer = gameObject.layer;
+         
+        if (LayerMask.LayerToName(layer) == "Boundry"){
+            targetDir = -targetDir;
+            rigidbody.velocity = targetDir * moveSpeed;
         }
     }
 
