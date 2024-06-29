@@ -8,25 +8,30 @@ public class Enemy : MonoBehaviour, IDamagable {
 
     private Transform player;
 
+    private bool isAwareOfThePlayer = false;
+    private bool isMoving = false;
+    private bool isDead = false;
+
     private bool isActive = false;
     private int hp = 6;
     private Collider2D collider;
-
     private Rigidbody2D rigidbody;
-    private bool isMoving = false;
-    private float moveSpeed = 3f;
-    private float rotationSpeed = 360f;
 
-    private bool isAwareOfThePlayer = false;
+    private const float MOVE_SPEED = 2f;
+    private float curMoveSpeed;
+    private float rotationSpeed = 360f;
     private float awarensesRange = 5f;
 
     private Vector2 toTargetVector;
     private Vector2 targetDir;
+    private Vector2 smoothedMovement;
+    private Vector2 smoothedVelocity;
+
     private int damege = 2;
     float dirCouldown;
 
-    private bool isDead = false;
-    private void Awake () {
+
+    private void Awake() {
         rigidbody = GetComponent<Rigidbody2D>();
         player = FindObjectOfType<Player>().transform;
         collider = GetComponent<Collider2D>();
@@ -39,14 +44,15 @@ public class Enemy : MonoBehaviour, IDamagable {
         dirCouldown = Random.Range(1f, 5f);
         Physics2D.IgnoreLayerCollision(6, 8, true);
 
+        curMoveSpeed = MOVE_SPEED;
     }
 
     private void FixedUpdate () {
         if (!isDead && isActive) {
             UpdateTargetDir();
             IsAware();
-            HandleRotation();
-            HandleMovment();
+                HandleRotation();
+                HandleMovment();
         }
         if (!isActive) {
             MoveToCenter();
@@ -89,7 +95,7 @@ public class Enemy : MonoBehaviour, IDamagable {
             dirCouldown = Random.Range(1f, 5f);
         }
 
-        rigidbody.velocity = targetDir * moveSpeed;
+        rigidbody.velocity = targetDir * curMoveSpeed;
 
     }
 
@@ -103,7 +109,8 @@ public class Enemy : MonoBehaviour, IDamagable {
     private void HandlePlayerTargeting () {
         if (isAwareOfThePlayer) {
             targetDir = toTargetVector.normalized;
-            rigidbody.velocity = targetDir * moveSpeed;
+            smoothedMovement = Vector2.SmoothDamp(smoothedMovement, targetDir, ref smoothedVelocity, 0.5f);
+            rigidbody.velocity = smoothedMovement * curMoveSpeed;
         }
     }
 
@@ -112,6 +119,12 @@ public class Enemy : MonoBehaviour, IDamagable {
         if (hp <= 0) {
             Die();
         }
+        curMoveSpeed = 0.5f;
+        Invoke("ResetMoveSpeed", 0.5f);
+    }
+
+    public void ResetMoveSpeed() {
+        curMoveSpeed = MOVE_SPEED;
     }
 
     public bool IsMoving () {
@@ -142,7 +155,7 @@ public class Enemy : MonoBehaviour, IDamagable {
 
         if (LayerMask.LayerToName(layer) == "Boundary" && isActive) {
             targetDir = -targetDir;
-            rigidbody.velocity = targetDir * moveSpeed;
+            rigidbody.velocity = targetDir * curMoveSpeed;
         }
     }
 
@@ -155,6 +168,6 @@ public class Enemy : MonoBehaviour, IDamagable {
     private void MoveToCenter () {
         Vector2 screenCenter = Camera.main.ScreenToWorldPoint(new Vector2(Screen.width / 2, Screen.height / 2));
         targetDir = (screenCenter - (Vector2)transform.position).normalized;
-        rigidbody.velocity = targetDir * moveSpeed;
+        rigidbody.velocity = targetDir * curMoveSpeed;
     }
 }
