@@ -13,9 +13,10 @@ public class Enemy : MonoBehaviour, IDamagable {
     private bool isDead = false;
 
     private bool isActive = false;
-    private int hp = 6;
+    private float hp = 6;
     private Collider2D collider;
     private Rigidbody2D rigidbody;
+    private WaveController waveController;
 
     private const float MOVE_SPEED = 2f;
     private float curMoveSpeed;
@@ -27,15 +28,15 @@ public class Enemy : MonoBehaviour, IDamagable {
     private Vector2 smoothedMovement;
     private Vector2 smoothedVelocity;
 
-    private int damege = 2;
+    private float damage = 2;
     float dirCouldown;
 
 
-    private void Awake() {
+    private void Awake () {
         rigidbody = GetComponent<Rigidbody2D>();
         player = FindObjectOfType<Player>().transform;
         collider = GetComponent<Collider2D>();
-
+        waveController = FindObjectOfType<WaveController>();
 
     }
     private void Start () {
@@ -51,12 +52,12 @@ public class Enemy : MonoBehaviour, IDamagable {
         if (!isDead && isActive) {
             UpdateTargetDir();
             IsAware();
-                HandleRotation();
-                HandleMovment();
+            HandleMovment();
         }
         if (!isActive) {
             MoveToCenter();
         }
+        HandleRotation();
     }
 
     private void HandleRotation () {
@@ -114,7 +115,7 @@ public class Enemy : MonoBehaviour, IDamagable {
         }
     }
 
-    public void TakeDamage (int damage) {
+    public void TakeDamage (float damage) {
         hp -= damage;
         if (hp <= 0) {
             Die();
@@ -123,7 +124,7 @@ public class Enemy : MonoBehaviour, IDamagable {
         Invoke("ResetMoveSpeed", 0.5f);
     }
 
-    public void ResetMoveSpeed() {
+    public void ResetMoveSpeed () {
         curMoveSpeed = MOVE_SPEED;
     }
 
@@ -139,13 +140,15 @@ public class Enemy : MonoBehaviour, IDamagable {
         rigidbody.velocity = Vector2.zero;
         isMoving = false;
         isDead = true;
+        waveController.DecreaseEnemyCount();
         collider.enabled = false;
         Destroy(gameObject, 3f);
     }
     public void OnCollisionStay2D (Collision2D collision) {
         IDamagable damagable = collision.gameObject.GetComponent<IDamagable>();
-        if (damagable != null && collision.gameObject.name == "Player") {
-            damagable.TakeDamage(damege);
+        string iDamagamleName = collision.gameObject.name.Replace("(Clone)", "").Trim();
+        if (damagable != null && iDamagamleName != "Enemy") {
+            damagable.TakeDamage(damage);
         }
     }
 
@@ -169,5 +172,17 @@ public class Enemy : MonoBehaviour, IDamagable {
         Vector2 screenCenter = Camera.main.ScreenToWorldPoint(new Vector2(Screen.width / 2, Screen.height / 2));
         targetDir = (screenCenter - (Vector2)transform.position).normalized;
         rigidbody.velocity = targetDir * curMoveSpeed;
+    }
+    
+    private void DestroIfWanderOff () {
+        Vector2 enemyPositionToCamera = Camera.main.WorldToViewportPoint(transform.position);
+
+        if((enemyPositionToCamera.x<0 ||
+            enemyPositionToCamera.x >1 ||
+            enemyPositionToCamera.y<0 ||
+            enemyPositionToCamera.y>1 )&&
+            isActive) {
+            Die();
+        }
     }
 }

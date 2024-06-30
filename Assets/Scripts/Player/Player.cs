@@ -3,6 +3,7 @@ using System.Collections;
 using UnityEngine;
 
 public class Player : MonoBehaviour, IDamagable {
+
     [SerializeField] private MousePosition2D mousePosition;
     [SerializeField] private PlayerInput input;
     [SerializeField] private Transform endOfAGun;
@@ -19,11 +20,12 @@ public class Player : MonoBehaviour, IDamagable {
     private Collider2D collider;
 
     private float speed = 7f;
-    private int hp = 10;
+    private const float HP = 10;
+    private float curHP = 10;
     private float invulnerabilityDuration = 2f;
     private float dashSpeed = 17f;
     private float dashDuration = 0.3f;
-    private int gunDamage = 2;
+    private float gunDamage = 2;
     private float rateOfFire = 0.5f;
 
     private Vector2 smoothedMovement;
@@ -134,16 +136,25 @@ public class Player : MonoBehaviour, IDamagable {
         return isDead;
     }
 
-    public void TakeDamage(int damage) {
+    public void TakeDamage(float damage) {
         if (isDamagable) {
             isDamagable = false;
             Debug.Log("Ouch");
-            hp -= damage;
-            if (hp <= 0) {
+            curHP -= damage;
+            if (curHP <= 0) {
                 Die();
             }
             StartCoroutine("ResetISDamageble");
         }
+    }
+
+    public float GetHPAsPercentage () {
+        if(curHP <= 0) {
+            return 0;
+        }
+
+        return  curHP/HP;
+
     }
     public IEnumerator ResetISDamageble() {
         yield return new WaitForSeconds(invulnerabilityDuration);
