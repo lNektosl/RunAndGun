@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class Player : MonoBehaviour, IDamagable {
@@ -8,6 +9,8 @@ public class Player : MonoBehaviour, IDamagable {
     [SerializeField] private PlayerInput input;
     [SerializeField] private Transform endOfAGun;
     [SerializeField] private BulletTrail bulletPrefab;
+    [SerializeField] private Color flashColor;
+    [SerializeField] private float numberOfFlashes;
 
     private bool isShooting = false;
     private bool isDashing = false;
@@ -18,34 +21,40 @@ public class Player : MonoBehaviour, IDamagable {
 
     private Rigidbody2D rigidbody2D;
     private Collider2D collider;
+    private SpriteRenderer spriteRenderer;
 
     private float speed = 7f;
-    private const float HP = 10;
-    private float curHP = 10;
+    private const float HP = 10f;
+    private float curHP = 10f;
     private float invulnerabilityDuration = 2f;
     private float dashSpeed = 17f;
     private float dashDuration = 0.3f;
-    private float gunDamage = 2;
+    private float gunDamage = 2f;
     private float rateOfFire = 0.5f;
+    private float flashDuration = 2f;
 
     private Vector2 smoothedMovement;
     private Vector2 smoothedVelocity;
     private Vector2 dashDir;
     private Vector2 lastInput;
 
-    public void Awake() {
+    public delegate void PlayerDieEventHadler ();
+    public event PlayerDieEventHadler OnPlayerDie;
+
+    public void Awake () {
         rigidbody2D = GetComponent<Rigidbody2D>();
         collider = GetComponent<Collider2D>();
+        spriteRenderer = GetComponentInChildren<SpriteRenderer>();
     }
 
-    public void Start() {
+    public void Start () {
         input.OnShiftPressed += Dash_OnShiftPressed;
         input.OnShootStart += Shoot_OnShootStart;
         input.OnShootEnd += EndShoot_OnShootEnd;
         rigidbody2D.freezeRotation = true;
     }
 
-    public void FixedUpdate() {
+    public void FixedUpdate () {
         if (!isDead) {
             HandleRotation();
             if (!isDashing) {
@@ -57,7 +66,7 @@ public class Player : MonoBehaviour, IDamagable {
         }
     }
 
-    private void HandleMovement() {
+    private void HandleMovement () {
         Vector2 moveDir = input.GetVector2Normalized();
         if (moveDir != Vector2.zero) {
             lastInput = moveDir;
@@ -67,7 +76,7 @@ public class Player : MonoBehaviour, IDamagable {
         isMoving = moveDir != Vector2.zero;
     }
 
-    private void HandleShooting() {
+    private void HandleShooting () {
         if (readyToShoot) {
             readyToShoot = false;
             Vector3 aimDirection = (mousePosition.GetMouseTargetPosition() - endOfAGun.position).normalized;
@@ -84,8 +93,7 @@ public class Player : MonoBehaviour, IDamagable {
                 if (damagableObject != null) {
                     damagableObject.TakeDamage(gunDamage);
                 }
-            }
-            else {
+            } else {
                 Vector3 target = endOfAGun.position + weaponRange * aimDirection;
                 target.z = 0;
                 bullet.SetTarget(target);
@@ -94,25 +102,25 @@ public class Player : MonoBehaviour, IDamagable {
         }
     }
 
-    private void ResetShoot() {
+    private void ResetShoot () {
         readyToShoot = true;
     }
 
-    private void HandleRotation() {
+    private void HandleRotation () {
         Vector3 aimDirection = GetAimDirection();
         float angle = Mathf.Atan2(aimDirection.y, aimDirection.x) * Mathf.Rad2Deg;
         transform.eulerAngles = new Vector3(0, 0, angle);
     }
 
-    private Vector3 GetAimDirection() {
+    private Vector3 GetAimDirection () {
         return (mousePosition.GetMouseTargetPosition() - transform.position);
     }
 
-    private void Dash_OnShiftPressed(object sender, EventArgs e) {
+    private void Dash_OnShiftPressed (object sender, EventArgs e) {
         StartCoroutine(Dash());
     }
 
-    private IEnumerator Dash() {
+    private IEnumerator Dash () {
         dashDir = lastInput;
         isDashing = true;
         rigidbody2D.velocity = dashDir * dashSpeed;
@@ -120,49 +128,76 @@ public class Player : MonoBehaviour, IDamagable {
         isDashing = false;
     }
 
-    private void Shoot_OnShootStart(object sender, EventArgs e) {
+    private void Shoot_OnShootStart (object sender, EventArgs e) {
         isShooting = true;
     }
 
-    private void EndShoot_OnShootEnd(object sender, EventArgs e) {
+    private void EndShoot_OnShootEnd (object sender, EventArgs e) {
         isShooting = false;
     }
 
-    public bool IsMoving() {
+    public bool IsMoving () {
         return isMoving;
     }
 
-    public bool IsDead() {
+    public bool IsDead () {
         return isDead;
     }
 
-    public void TakeDamage(float damage) {
+    public void TakeDamage (float damage) {
         if (isDamagable) {
             isDamagable = false;
             Debug.Log("Ouch");
             curHP -= damage;
             if (curHP <= 0) {
                 Die();
+                return;
             }
             StartCoroutine("ResetISDamageble");
+            StartCoroutine(nameof(Flash));
         }
+    }
+
+    private IEnumerator Flash () {
+        Color startColor = spriteRenderer.color;
+        float elapsedFlashTime = 0;
+        float elapsedFlashPrecentage = 0;
+
+        while (elapsedFlashTime < flashDuration) {
+            elapsedFlashTime += Time.deltaTime;
+            elapsedFlashPrecentage = elapsedFlashTime/flashDuration;
+
+            if (elapsedFlashPrecentage > 1) {
+                elapsedFlashPrecentage = 1;
+            }
+
+            float pingPongPrecentage = Mathf.PingPong(elapsedFlashPrecentage * 2 * numberOfFlashes, 1);
+            spriteRenderer.color = Color.Lerp(startColor, flashColor, pingPongPrecentage);
+
+            yield return null;
+               
+        }
+
+
     }
 
     public float GetHPAsPercentage () {
-        if(curHP <= 0) {
+        if (curHP <= 0) {
             return 0;
         }
 
-        return  curHP/HP;
+        return curHP / HP;
 
     }
-    public IEnumerator ResetISDamageble() {
+    public IEnumerator ResetISDamageble () {
         yield return new WaitForSeconds(invulnerabilityDuration);
         isDamagable = true;
     }
-    private void Die() {
+    private void Die () {
         isDead = true;
         collider.enabled = false;
         rigidbody2D.velocity = Vector2.zero;
+
+        OnPlayerDie?.Invoke();
     }
 }

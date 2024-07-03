@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class WaveController : MonoBehaviour {
 
@@ -13,6 +14,7 @@ public class WaveController : MonoBehaviour {
     private int curEnemyCount = 0;
     private int spawnedEnemyCount = 0;
     private float spawnTimer = 5;
+    private int numOfWaves = 5;
 
     public void Start () {
         spawners = spawnersHolder.GetComponentsInChildren<ISpawner>();
@@ -48,7 +50,7 @@ public class WaveController : MonoBehaviour {
     }
 
     private void StartWave () {
-        if (wave != 2) {
+        if (wave !=  numOfWaves) {
 
             isWaveOn = true;
             wave++;
@@ -56,7 +58,11 @@ public class WaveController : MonoBehaviour {
             curEnemyCount = 0;
             spawnedEnemyCount = 0;
         } else {
-            isGameOn = false;
+            Invoke("EndGame", 3f);
         }
+    }
+
+    private void EndGame () {
+        SceneManager.LoadScene("Menu");
     }
 }
